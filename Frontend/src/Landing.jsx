@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Calendar, User, Plus, Map as MapIcon, DollarSign, Share2, Copy, Send, ChevronDown, CheckCircle2, Layers, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
+import { Search, MapPin, Calendar, User, Plus, Map as MapIcon, DollarSign, Share2, Copy, Send, ChevronDown, CheckCircle2, Layers, SlidersHorizontal, ArrowUpDown, Settings, LogOut, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Landing() {
-  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' | 'trip'
+  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' | 'trip' | 'profile'
   const [tripTab, setTripTab] = useState('itinerary'); // 'itinerary' | 'budget' | 'share'
+  const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
@@ -172,13 +173,66 @@ export default function Landing() {
       {/* Search and Filter Row */}
       <div className="flex flex-col md:flex-row gap-4 mb-12">
          {/* Search Bar */}
-         <div className="flex-1 relative group">
+         <div className="flex-1 relative group z-30">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#749962] transition-colors" size={18} />
             <input 
               type="text" 
-              placeholder="Search bar ......" 
+              placeholder="Search destinations, trips, or travel companions..." 
               className="w-full bg-white border border-gray-200 rounded-full py-3.5 pl-12 pr-6 text-sm text-gray-800 outline-none focus:border-[#749962] focus:ring-2 focus:ring-[#749962]/20 transition-all shadow-sm" 
             />
+            {/* Search Dropdown / Filters */}
+            <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white border border-gray-100 rounded-2xl shadow-xl opacity-0 invisible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 overflow-hidden">
+               <div className="p-4 border-b border-gray-50 flex items-center justify-between">
+                 <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Suggested Filters</span>
+                 <span className="text-xs font-bold text-[#749962] cursor-pointer hover:underline">Clear all</span>
+               </div>
+               <div className="p-2 flex flex-col">
+                  <div className="px-4 py-3 hover:bg-gray-50 cursor-pointer rounded-xl flex items-center justify-between group/item transition-colors">
+                     <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center">
+                           <MapPin size={14} />
+                        </div>
+                        <div>
+                           <p className="text-sm font-bold text-gray-800 group-hover/item:text-[#749962] transition-colors">Tropical Destinations</p>
+                           <p className="text-xs text-gray-400 mt-0.5">Bali, Maldives, Hawaii</p>
+                        </div>
+                     </div>
+                     <span className="text-xs font-bold text-gray-300 group-hover/item:text-[#749962] transition-colors">Apply</span>
+                  </div>
+
+                  <div className="px-4 py-3 hover:bg-gray-50 cursor-pointer rounded-xl flex items-center justify-between group/item transition-colors">
+                     <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                           <Calendar size={14} />
+                        </div>
+                        <div>
+                           <p className="text-sm font-bold text-gray-800 group-hover/item:text-[#749962] transition-colors">Upcoming This Month</p>
+                           <p className="text-xs text-gray-400 mt-0.5">2 Trips scheduled in May</p>
+                        </div>
+                     </div>
+                     <span className="text-xs font-bold text-gray-300 group-hover/item:text-[#749962] transition-colors">Apply</span>
+                  </div>
+
+                  <div className="px-4 py-3 hover:bg-gray-50 cursor-pointer rounded-xl flex items-center justify-between group/item transition-colors">
+                     <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
+                           <User size={14} />
+                        </div>
+                        <div>
+                           <p className="text-sm font-bold text-gray-800 group-hover/item:text-[#749962] transition-colors">Travel Companions</p>
+                           <p className="text-xs text-gray-400 mt-0.5">Find people travelling to your destinations</p>
+                        </div>
+                     </div>
+                     <span className="text-xs font-bold text-gray-300 group-hover/item:text-[#749962] transition-colors">Apply</span>
+                  </div>
+               </div>
+               <div 
+                 onMouseDown={(e) => { e.preventDefault(); setIsAdvancedSearchOpen(true); }}
+                 className="bg-gray-50 p-4 text-center border-t border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors"
+               >
+                  <span className="text-sm font-bold text-[#749962]">Advanced Search & Filters &rarr;</span>
+               </div>
+            </div>
          </div>
          {/* Filter Buttons */}
          <div className="flex gap-3 overflow-x-auto pb-2 md:pb-0 hide-scrollbar shrink-0">
@@ -365,47 +419,47 @@ export default function Landing() {
   const renderItinerary = () => (
     <div className="flex h-[calc(100vh-80px)] overflow-hidden">
       {/* Left Panel */}
-      <div className="w-full md:w-1/3 md:min-w-[400px] border-r border-gray-800 overflow-y-auto p-6 bg-[#111111]">
-        <h2 className="text-2xl font-bold text-white mb-6">Itinerary Builder</h2>
+      <div className="w-full md:w-1/3 md:min-w-[400px] border-r border-[#d6e7cc] overflow-y-auto p-6 bg-[#f3f8ef]">
+        <h2 className="text-2xl font-bold text-[#152010] mb-6">Itinerary Builder</h2>
         
         {/* Search */}
         <div className="relative mb-8">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#608250]" size={16} />
           <input 
             type="text" 
             placeholder="Search destinations, hotels, activities..." 
-            className="w-full bg-[#1a1a1a] border border-gray-800 rounded-lg py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 outline-none focus:border-[#749962] transition shadow-inner"
+            className="w-full bg-white border border-[#d6e7cc] rounded-lg py-3 pl-10 pr-4 text-sm text-[#152010] placeholder-gray-400 outline-none focus:border-[#749962] transition shadow-sm"
           />
         </div>
 
         {/* Days Accordion */}
         {[1, 2, 3].map(day => (
-          <div key={day} className="mb-4 bg-[#1a1a1a] border border-gray-800 rounded-xl overflow-hidden shadow-sm">
-             <div className="flex justify-between items-center p-4 cursor-pointer hover:bg-[#222] transition-colors">
-               <h3 className="text-white font-bold text-sm">Day {day} <span className="text-gray-500 font-medium ml-2">Jan 0{day+4}, 2024</span></h3>
-               <ChevronDown size={16} className="text-gray-500" />
+          <div key={day} className="mb-4 bg-white border border-[#d6e7cc] rounded-xl overflow-hidden shadow-sm">
+             <div className="flex justify-between items-center p-4 cursor-pointer hover:bg-[#edf6e7] transition-colors">
+               <h3 className="text-[#152010] font-bold text-sm">Day {day} <span className="text-gray-500 font-medium ml-2">Jan 0{day+4}, 2024</span></h3>
+               <ChevronDown size={16} className="text-[#608250]" />
              </div>
              {day === 1 && (
-               <div className="p-4 border-t border-gray-800 bg-[#111]">
-                 <div className="relative pl-6 border-l-2 border-gray-800 space-y-5 py-2">
+              <div className="p-4 border-t border-[#d6e7cc] bg-[#f8fcf5]">
+                <div className="relative pl-6 border-l-2 border-[#d6e7cc] space-y-5 py-2">
                    {/* Stop 1 */}
                    <div className="relative">
-                     <div className="absolute -left-[31px] top-1.5 w-3 h-3 bg-[#749962] rounded-full border-[3px] border-[#111]"></div>
-                     <div className="bg-[#1a1a1a] p-4 rounded-lg border border-gray-800 hover:border-gray-600 transition">
-                       <h4 className="text-white text-sm font-bold">Arrive at Zurich Airport</h4>
+                    <div className="absolute -left-[31px] top-1.5 w-3 h-3 bg-[#749962] rounded-full border-[3px] border-[#f8fcf5]"></div>
+                    <div className="bg-white p-4 rounded-lg border border-[#d6e7cc] hover:border-[#749962] transition">
+                      <h4 className="text-[#152010] text-sm font-bold">Arrive at Zurich Airport</h4>
                        <p className="text-[#749962] text-xs font-bold mt-1.5">10:00 AM <span className="text-gray-500 font-normal ml-1">• Flight LX 38</span></p>
                      </div>
                    </div>
                    {/* Stop 2 */}
                    <div className="relative">
-                     <div className="absolute -left-[31px] top-1.5 w-3 h-3 bg-gray-600 rounded-full border-[3px] border-[#111]"></div>
-                     <div className="bg-[#1a1a1a] p-4 rounded-lg border border-gray-800 hover:border-gray-600 transition">
-                       <h4 className="text-white text-sm font-bold">Check-in at Hotel Alpine</h4>
+                    <div className="absolute -left-[31px] top-1.5 w-3 h-3 bg-gray-500 rounded-full border-[3px] border-[#f8fcf5]"></div>
+                    <div className="bg-white p-4 rounded-lg border border-[#d6e7cc] hover:border-[#749962] transition">
+                      <h4 className="text-[#152010] text-sm font-bold">Check-in at Hotel Alpine</h4>
                        <p className="text-[#749962] text-xs font-bold mt-1.5">1:00 PM <span className="text-gray-500 font-normal ml-1">• Accommodation</span></p>
                      </div>
                    </div>
                  </div>
-                 <button className="mt-6 w-full border border-dashed border-gray-700 text-gray-400 hover:text-[#749962] hover:border-[#749962] hover:bg-[#749962]/5 py-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2">
+                <button className="mt-6 w-full border border-dashed border-[#b7ceb0] text-[#608250] hover:text-[#749962] hover:border-[#749962] hover:bg-[#749962]/5 py-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2">
                    <Plus size={16} /> Add Stop
                  </button>
                </div>
@@ -415,12 +469,12 @@ export default function Landing() {
       </div>
 
       {/* Right Panel: Map & Timeline */}
-      <div className="flex-1 bg-[#0a0a0a] hidden md:flex flex-col relative overflow-hidden">
+      <div className="flex-1 bg-[#eaf4e4] hidden md:flex flex-col relative overflow-hidden">
          <div className="flex-1 w-full relative flex items-center justify-center">
             {/* Map Grid Pattern */}
             <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
             
-            <div className="text-gray-700 flex flex-col items-center gap-3">
+            <div className="text-[#608250] flex flex-col items-center gap-3">
                <MapIcon size={48} strokeWidth={1} />
                <p className="font-bold text-sm tracking-widest uppercase">Interactive Route Map</p>
             </div>
@@ -436,27 +490,27 @@ export default function Landing() {
                </svg>
             </div>
             <div className="absolute top-[55%] left-[53%] flex flex-col items-center z-10 group cursor-pointer">
-               <div className="w-8 h-8 bg-[#111] text-white border-2 border-[#749962] rounded-full flex items-center justify-center font-bold text-xs shadow-lg group-hover:bg-[#749962] transition-colors">2</div>
+               <div className="w-8 h-8 bg-white text-[#152010] border-2 border-[#749962] rounded-full flex items-center justify-center font-bold text-xs shadow-lg group-hover:bg-[#749962] group-hover:text-white transition-colors">2</div>
             </div>
          </div>
          
          {/* Horizontal Timeline Block */}
-         <div className="h-[140px] bg-[#111] border-t border-gray-800 p-5 overflow-x-auto whitespace-nowrap">
+         <div className="h-[140px] bg-[#f3f8ef] border-t border-[#d6e7cc] p-5 overflow-x-auto whitespace-nowrap">
             <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Day 1 Timeline</h4>
             <div className="flex items-center gap-4 relative">
-               <div className="absolute left-0 right-0 top-1/2 h-px bg-gray-800 -z-10"></div>
+               <div className="absolute left-0 right-0 top-1/2 h-px bg-[#d6e7cc] -z-10"></div>
                
-               <div className="bg-[#1a1a1a] border border-[#749962] px-5 py-3 rounded-lg text-sm font-bold text-[#749962] shadow-sm flex items-center gap-3">
+               <div className="bg-white border border-[#749962] px-5 py-3 rounded-lg text-sm font-bold text-[#749962] shadow-sm flex items-center gap-3">
                  <div className="w-2 h-2 rounded-full bg-[#749962]"></div>
                  10:00 AM - Arrival
                </div>
                
-               <div className="bg-[#1a1a1a] border border-gray-800 px-5 py-3 rounded-lg text-sm text-gray-300 font-medium hover:border-gray-600 transition cursor-pointer flex items-center gap-3">
+               <div className="bg-white border border-[#d6e7cc] px-5 py-3 rounded-lg text-sm text-gray-700 font-medium hover:border-[#749962] transition cursor-pointer flex items-center gap-3">
                  <div className="w-2 h-2 rounded-full bg-gray-600"></div>
                  1:00 PM - Hotel
                </div>
                
-               <button className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-gray-700 flex items-center justify-center text-gray-400 hover:text-white hover:border-gray-500 transition shadow-sm">
+               <button className="w-10 h-10 rounded-full bg-white border border-[#d6e7cc] flex items-center justify-center text-[#608250] hover:text-[#749962] hover:border-[#749962] transition shadow-sm">
                  <Plus size={16}/>
                </button>
             </div>
@@ -574,6 +628,80 @@ export default function Landing() {
     </div>
   );
 
+  const renderProfileDashboard = () => (
+    <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="bg-white border border-[#d6e7cc] rounded-3xl p-6 md:p-8 shadow-xl">
+        <button
+          onClick={() => setCurrentView('dashboard')}
+          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[#608250] hover:text-[#152010] transition-colors"
+        >
+          <span>&larr;</span> Back to Landing
+        </button>
+        <h2 className="text-3xl md:text-4xl font-black text-[#152010] tracking-tight mb-8">User Profile</h2>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6 mb-10">
+          <div className="bg-[#f3f8ef] border border-[#d6e7cc] rounded-2xl p-6 flex flex-col items-center justify-center">
+            <div className="w-28 h-28 rounded-full border-2 border-[#749962] bg-white flex items-center justify-center text-4xl font-black text-[#152010]">
+              {user?.name?.charAt(0).toUpperCase() || 'U'}
+            </div>
+            <p className="text-[#608250] text-xs uppercase tracking-wider mt-4">Traveler</p>
+          </div>
+
+          <div className="bg-[#f3f8ef] border border-[#d6e7cc] rounded-2xl p-6 md:p-8">
+            <h3 className="text-xl md:text-2xl text-[#152010] font-black mb-4">Your Details</h3>
+            <div className="space-y-3 text-sm md:text-base">
+              <p className="text-gray-700"><span className="text-[#608250] font-semibold">Name:</span> {user?.name || 'Explorer'}</p>
+              <p className="text-gray-700"><span className="text-[#608250] font-semibold">Email:</span> {user?.email || 'user@example.com'}</p>
+              <p className="text-gray-700"><span className="text-[#608250] font-semibold">Membership:</span> Premium Explorer</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-10">
+          <h3 className="text-2xl font-black text-[#152010] mb-5">Preplanned Trips</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {trips.slice(0, 3).map((trip) => (
+              <div
+                key={trip.id}
+                onClick={() => handleTripClick(trip.id)}
+                className="bg-[#f3f8ef] border border-[#d6e7cc] rounded-2xl p-4 cursor-pointer hover:border-[#749962] transition-colors"
+              >
+                <div className="h-36 rounded-xl overflow-hidden mb-4">
+                  <img src={trip.image} alt={trip.name} className="w-full h-full object-cover" />
+                </div>
+                <h4 className="text-[#152010] font-bold mb-3">{trip.name}</h4>
+                <button className="w-full py-2.5 rounded-lg border border-[#749962] text-[#608250] font-semibold hover:bg-[#749962] hover:text-white transition-colors">
+                  View
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-2xl font-black text-[#152010] mb-5">Previous Trips</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {previousTrips.map((trip) => (
+              <div
+                key={trip.id}
+                onClick={() => handleTripClick(trip.id)}
+                className="bg-[#f3f8ef] border border-[#d6e7cc] rounded-2xl p-4 cursor-pointer hover:border-[#749962] transition-colors"
+              >
+                <div className="h-36 rounded-xl overflow-hidden mb-4">
+                  <img src={trip.image} alt={trip.name} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all" />
+                </div>
+                <h4 className="text-[#152010] font-bold mb-3">{trip.name}</h4>
+                <button className="w-full py-2.5 rounded-lg border border-[#749962] text-[#608250] font-semibold hover:bg-[#749962] hover:text-white transition-colors">
+                  View
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-[#E5F0E0] text-gray-900 font-sans selection:bg-[#749962] selection:text-white relative">
       
@@ -582,14 +710,35 @@ export default function Landing() {
         {user?.name?.charAt(0).toUpperCase() || 'U'}
         {/* Dropdown menu */}
         <div 
-          className="absolute top-14 right-0 bg-white border border-gray-200 rounded-xl shadow-xl py-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all"
+          className="absolute top-14 right-0 bg-white border border-gray-200 rounded-xl shadow-xl py-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all flex flex-col"
         >
-          <div className="px-4 py-2 text-xs font-bold text-gray-500 border-b border-gray-100 mb-1 truncate">{user?.email || 'user@example.com'}</div>
-          <div 
-            onClick={handleLogout}
-            className="px-4 py-3 text-sm text-red-500 hover:bg-gray-50 cursor-pointer flex items-center gap-2 font-medium"
-          >
-            Sign Out
+          {/* Username / Header */}
+          <div className="px-4 py-3 border-b border-gray-100 mb-1">
+            <p className="text-sm font-bold text-gray-800 truncate">{user?.name || 'Explorer'}</p>
+            <p className="text-xs font-medium text-gray-400 truncate">{user?.email || 'user@example.com'}</p>
+          </div>
+          
+          {/* Menu Items */}
+          <div className="px-2">
+            <div
+              onClick={() => setCurrentView('profile')}
+              className="px-3 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-[#749962] rounded-lg cursor-pointer flex items-center gap-3 font-medium transition-colors"
+            >
+              <User size={16} /> Profile
+            </div>
+            <div className="px-3 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-[#749962] rounded-lg cursor-pointer flex items-center gap-3 font-medium transition-colors">
+              <Settings size={16} /> Settings
+            </div>
+          </div>
+          
+          {/* Logout Divider & Button */}
+          <div className="border-t border-gray-100 mt-1 px-2 pt-1">
+            <div 
+              onClick={handleLogout}
+              className="px-3 py-2.5 text-sm text-red-500 hover:bg-red-50 rounded-lg cursor-pointer flex items-center gap-3 font-medium transition-colors"
+            >
+              <LogOut size={16} /> Logout
+            </div>
           </div>
         </div>
       </div>
@@ -597,7 +746,7 @@ export default function Landing() {
       {/* Navbar - Centered Logo, No Border */}
       <header className="h-[80px] bg-[#E5F0E0] flex items-center justify-center px-8 sticky top-0 z-40">
          <div 
-           className="text-3xl font-black tracking-tighter text-[#1a1a1a] cursor-pointer flex items-center gap-2"
+          className="text-3xl font-black tracking-tighter text-[#1a1a1a] cursor-pointer flex items-center gap-2"
            onClick={() => setCurrentView('dashboard')}
          >
             <div className="w-8 h-8 bg-[#749962] rounded-md shadow-sm"></div>
@@ -653,6 +802,7 @@ export default function Landing() {
         )}
 
         {currentView === 'dashboard' && renderDashboard()}
+        {currentView === 'profile' && renderProfileDashboard()}
         {currentView === 'trip' && tripTab === 'itinerary' && renderItinerary()}
         {currentView === 'trip' && tripTab === 'budget' && renderBudget()}
         {currentView === 'trip' && tripTab === 'share' && renderShare()}
@@ -671,6 +821,99 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+
+      {/* Advanced Search Modal */}
+      {isAdvancedSearchOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 md:p-12">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-[#000000]/70 backdrop-blur-xl transition-opacity"
+            onClick={() => setIsAdvancedSearchOpen(false)}
+          ></div>
+          
+          {/* Modal Container */}
+          <div className="relative w-full max-w-4xl max-h-full bg-[#f3f8ef] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-[#d6e7cc] animate-in fade-in zoom-in-95 duration-200">
+             {/* Header */}
+             <div className="p-6 md:p-8 flex justify-between items-center border-b border-[#d6e7cc]">
+                <h2 className="text-3xl font-black text-[#152010] tracking-tight">Advanced Search</h2>
+                <button 
+                  onClick={() => setIsAdvancedSearchOpen(false)}
+                  className="w-10 h-10 rounded-full bg-white border border-[#d6e7cc] hover:bg-[#edf6e7] flex items-center justify-center text-[#152010] transition-colors"
+                >
+                  <X size={20} />
+                </button>
+             </div>
+             
+             {/* Body */}
+             <div className="p-6 md:p-8 overflow-y-auto flex-1 custom-scrollbar">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   
+                   {/* Destination Input */}
+                   <div className="space-y-2 col-span-1 md:col-span-2">
+                    <label className="text-sm font-bold text-[#608250] uppercase tracking-wider">Destination</label>
+                     <div className="relative">
+                       <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-[#608250]" size={20} />
+                       <input type="text" placeholder="Where do you want to go?" className="w-full bg-white border border-[#d6e7cc] rounded-xl py-4 pl-12 pr-4 text-[#152010] placeholder-gray-400 focus:outline-none focus:border-[#749962] transition-colors" />
+                     </div>
+                   </div>
+
+                   {/* Date Range */}
+                   <div className="space-y-2">
+                    <label className="text-sm font-bold text-[#608250] uppercase tracking-wider">Dates</label>
+                     <div className="relative">
+                       <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-[#608250]" size={20} />
+                       <input type="text" placeholder="Select dates" className="w-full bg-white border border-[#d6e7cc] rounded-xl py-4 pl-12 pr-4 text-[#152010] placeholder-gray-400 focus:outline-none focus:border-[#749962] transition-colors" />
+                     </div>
+                   </div>
+
+                   {/* Budget Range (Dummy) */}
+                   <div className="space-y-2">
+                    <label className="text-sm font-bold text-[#608250] uppercase tracking-wider flex justify-between">
+                       <span>Budget (Per Person)</span>
+                      <span className="text-[#152010]">$500 - $2500+</span>
+                     </label>
+                     <div className="h-14 flex items-center px-2">
+                       <div className="w-full h-2 bg-[#d6e7cc] rounded-full relative">
+                          <div className="absolute left-[20%] right-[30%] h-full bg-[#749962] rounded-full"></div>
+                           <div className="absolute left-[20%] top-1/2 -translate-y-1/2 w-5 h-5 bg-white rounded-full shadow cursor-grab"></div>
+                           <div className="absolute right-[30%] top-1/2 -translate-y-1/2 w-5 h-5 bg-white rounded-full shadow cursor-grab"></div>
+                        </div>
+                     </div>
+                   </div>
+
+                   {/* Trip Style Badges */}
+                   <div className="space-y-3 col-span-1 md:col-span-2 mt-4">
+                    <label className="text-sm font-bold text-[#608250] uppercase tracking-wider">Trip Style</label>
+                     <div className="flex flex-wrap gap-3">
+                        {['Adventure', 'Relaxation', 'Cultural', 'Nature', 'City Break', 'Road Trip', 'Luxury'].map((style, i) => (
+                         <button key={style} className={`px-5 py-2.5 rounded-full text-sm font-bold border transition-colors ${i === 0 || i === 3 ? 'bg-[#749962] border-[#749962] text-white' : 'bg-white border-[#d6e7cc] text-[#152010] hover:border-[#749962]'}`}>
+                            {style}
+                          </button>
+                        ))}
+                     </div>
+                   </div>
+
+                </div>
+             </div>
+             
+             {/* Footer */}
+             <div className="p-6 border-t border-[#d6e7cc] flex justify-end gap-4 bg-white">
+                <button 
+                  onClick={() => setIsAdvancedSearchOpen(false)}
+                  className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:text-[#152010] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => setIsAdvancedSearchOpen(false)}
+                  className="px-8 py-3 rounded-xl font-black bg-[#749962] text-white hover:bg-[#608250] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-[#749962]/20 flex items-center gap-2"
+                >
+                  <Search size={18} /> Show Results
+                </button>
+             </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
