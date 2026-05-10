@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Calendar, User, Plus, Map as MapIcon, DollarSign, Share2, Copy, Send, ChevronDown, CheckCircle2, Layers, SlidersHorizontal, ArrowUpDown, Settings, LogOut, X } from 'lucide-react';
+import { Search, MapPin, Calendar, User, Plus, Map as MapIcon, DollarSign, Share2, Copy, Send, ChevronDown, Layers, SlidersHorizontal, ArrowUpDown, Settings, LogOut, X, NotebookPen, ListChecks, Globe2, Activity, ClipboardCheck, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Landing() {
   const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' | 'trip' | 'profile'
-  const [tripTab, setTripTab] = useState('itinerary'); // 'itinerary' | 'budget' | 'share'
+  const [tripTab, setTripTab] = useState('itinerary'); // itinerary | budget | share | create | mytrips | itineraryview | citysearch | activitysearch | packing | notes | settings | public
   const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
@@ -628,6 +628,157 @@ export default function Landing() {
     </div>
   );
 
+  const renderCreateTrip = () => (
+    <div className="max-w-4xl mx-auto px-6 py-12">
+      <div className="bg-white border border-[#d6e7cc] rounded-2xl p-6 md:p-8 shadow-sm">
+        <h2 className="text-2xl font-black text-[#152010] mb-6">Create New Trip</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <input className="bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" placeholder="Trip name" />
+          <input className="bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" placeholder="Destination / Region" />
+          <input className="bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" placeholder="Start date" />
+          <input className="bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" placeholder="End date" />
+          <textarea className="md:col-span-2 bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962] min-h-28" placeholder="Trip description..." />
+        </div>
+        <button className="mt-6 px-6 py-3 rounded-xl bg-[#749962] text-white font-bold hover:bg-[#608250] transition-colors">Save Trip</button>
+      </div>
+    </div>
+  );
+
+  const renderMyTrips = () => (
+    <div className="max-w-6xl mx-auto px-6 py-12">
+      <h2 className="text-2xl font-black text-[#152010] mb-6">My Trips</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {trips.map((trip) => (
+          <div key={trip.id} className="bg-white border border-[#d6e7cc] rounded-2xl p-4 shadow-sm">
+            <div className="h-40 rounded-xl overflow-hidden mb-4"><img src={trip.image} alt={trip.name} className="w-full h-full object-cover" /></div>
+            <h3 className="font-bold text-[#152010]">{trip.name}</h3>
+            <p className="text-sm text-[#608250] mt-1">{trip.dates}</p>
+            <div className="flex gap-2 mt-4">
+              <button onClick={() => setTripTab('itinerary')} className="px-4 py-2 rounded-lg bg-[#edf6e7] text-[#152010] font-semibold">View</button>
+              <button className="px-4 py-2 rounded-lg border border-[#d6e7cc] text-[#608250] font-semibold">Edit</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderItineraryView = () => (
+    <div className="max-w-6xl mx-auto px-6 py-12">
+      <h2 className="text-2xl font-black text-[#152010] mb-6">Itinerary View</h2>
+      <div className="space-y-4">
+        {['Day 1 - Zurich', 'Day 2 - Lucerne', 'Day 3 - Interlaken'].map((day) => (
+          <div key={day} className="bg-white border border-[#d6e7cc] rounded-2xl p-5">
+            <h3 className="font-bold text-[#152010] mb-3">{day}</h3>
+            <div className="space-y-2 text-sm text-gray-700">
+              <p>10:00 AM - Arrival and hotel check-in</p>
+              <p>01:00 PM - Local city tour</p>
+              <p>06:00 PM - Dinner and free walk</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderCitySearch = () => (
+    <div className="max-w-6xl mx-auto px-6 py-12">
+      <h2 className="text-2xl font-black text-[#152010] mb-6">City Search</h2>
+      <div className="bg-white border border-[#d6e7cc] rounded-2xl p-5 mb-5">
+        <input className="w-full bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" placeholder="Search city, country, region..." />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {['Bali, Indonesia', 'Kyoto, Japan', 'Santorini, Greece', 'Cusco, Peru'].map((city) => (
+          <div key={city} className="bg-white border border-[#d6e7cc] rounded-xl p-4 flex items-center justify-between">
+            <div>
+              <p className="font-bold text-[#152010]">{city}</p>
+              <p className="text-xs text-[#608250]">Cost index: Moderate</p>
+            </div>
+            <button className="px-4 py-2 rounded-lg bg-[#749962] text-white text-sm font-semibold">Add to Trip</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderActivitySearch = () => (
+    <div className="max-w-6xl mx-auto px-6 py-12">
+      <h2 className="text-2xl font-black text-[#152010] mb-6">Activity Search</h2>
+      <div className="flex flex-wrap gap-2 mb-5">
+        {['Sightseeing', 'Adventure', 'Food', 'Culture', 'Budget Friendly'].map((f) => (
+          <button key={f} className="px-4 py-2 rounded-full bg-white border border-[#d6e7cc] text-[#152010] text-sm font-semibold">{f}</button>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {['Temple Tour', 'Mountain Hike', 'Street Food Walk'].map((item) => (
+          <div key={item} className="bg-white border border-[#d6e7cc] rounded-xl p-4">
+            <p className="font-bold text-[#152010]">{item}</p>
+            <p className="text-sm text-gray-600 mt-2">Duration: 2-4 hours • Cost: $$</p>
+            <button className="mt-4 px-4 py-2 rounded-lg bg-[#749962] text-white text-sm font-semibold">Add Activity</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderPackingChecklist = () => (
+    <div className="max-w-4xl mx-auto px-6 py-12">
+      <h2 className="text-2xl font-black text-[#152010] mb-6">Packing Checklist</h2>
+      <div className="bg-white border border-[#d6e7cc] rounded-2xl p-6 space-y-3">
+        {['Passport', 'Travel Insurance', 'Power Bank', 'Warm Jacket', 'Medicines'].map((item, idx) => (
+          <label key={item} className="flex items-center gap-3 text-[#152010]">
+            <input type="checkbox" defaultChecked={idx < 2} className="accent-[#749962]" />
+            {item}
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderTripNotes = () => (
+    <div className="max-w-5xl mx-auto px-6 py-12">
+      <h2 className="text-2xl font-black text-[#152010] mb-6">Trip Notes / Journal</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {['Hotel check-in at 2 PM', 'Carry local cash for markets', 'Book sunset cruise on Day 3'].map((note, idx) => (
+          <div key={idx} className="bg-white border border-[#d6e7cc] rounded-xl p-4">
+            <p className="text-[#152010]">{note}</p>
+            <p className="text-xs text-[#608250] mt-3">Updated today</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderUserSettings = () => (
+    <div className="max-w-4xl mx-auto px-6 py-12">
+      <h2 className="text-2xl font-black text-[#152010] mb-6">User Settings</h2>
+      <div className="bg-white border border-[#d6e7cc] rounded-2xl p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <input className="bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" defaultValue={user?.name || 'Explorer'} />
+        <input className="bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" defaultValue={user?.email || 'user@example.com'} />
+        <select className="bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]">
+          <option>English</option>
+          <option>Hindi</option>
+        </select>
+        <button className="px-5 py-3 rounded-xl bg-[#749962] text-white font-bold">Save Changes</button>
+      </div>
+    </div>
+  );
+
+  const renderPublicItinerary = () => (
+    <div className="max-w-5xl mx-auto px-6 py-12">
+      <div className="bg-white border border-[#d6e7cc] rounded-2xl p-6">
+        <h2 className="text-2xl font-black text-[#152010] mb-3">Shared Itinerary</h2>
+        <p className="text-[#608250] mb-5">Public read-only view for friends and community.</p>
+        <div className="space-y-3 mb-5">
+          <p className="text-[#152010]">Day 1: Arrival and city orientation</p>
+          <p className="text-[#152010]">Day 2: Activities and local cuisine</p>
+          <p className="text-[#152010]">Day 3: Scenic spots and departure</p>
+        </div>
+        <button className="px-5 py-3 rounded-xl bg-[#749962] text-white font-bold">Copy Trip</button>
+      </div>
+    </div>
+  );
+
   const renderProfileDashboard = () => (
     <div className="max-w-6xl mx-auto px-6 py-10">
       <div className="bg-white border border-[#d6e7cc] rounded-3xl p-6 md:p-8 shadow-xl">
@@ -756,6 +907,40 @@ export default function Landing() {
 
       {/* Main Content Area */}
       <main>
+        {currentView === 'trip' && (
+          <div className="sticky top-[80px] z-30 bg-[#E5F0E0]/95 backdrop-blur border-b border-[#d6e7cc]">
+            <div className="max-w-6xl mx-auto px-6 py-3 flex gap-2 overflow-x-auto hide-scrollbar">
+              {[
+                { key: 'create', label: 'Create', icon: Plus },
+                { key: 'mytrips', label: 'My Trips', icon: Globe2 },
+                { key: 'itinerary', label: 'Builder', icon: MapIcon },
+                { key: 'itineraryview', label: 'Itinerary View', icon: Calendar },
+                { key: 'citysearch', label: 'City Search', icon: Search },
+                { key: 'activitysearch', label: 'Activities', icon: Activity },
+                { key: 'budget', label: 'Budget', icon: BarChart3 },
+                { key: 'packing', label: 'Packing', icon: ClipboardCheck },
+                { key: 'notes', label: 'Notes', icon: NotebookPen },
+                { key: 'share', label: 'Share', icon: Share2 },
+                { key: 'public', label: 'Public View', icon: ListChecks },
+                { key: 'settings', label: 'Settings', icon: Settings }
+              ].map((tab) => {
+                const Icon = tab.icon;
+                const active = tripTab === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setTripTab(tab.key)}
+                    className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap border flex items-center gap-2 transition-colors ${active ? 'bg-[#749962] border-[#749962] text-white' : 'bg-white border-[#d6e7cc] text-[#152010] hover:border-[#749962]'}`}
+                  >
+                    <Icon size={14} />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Banner Image 50vh */}
         {/* Banner Image 55vh with Skewed Masonry Layout */}
         {currentView === 'dashboard' && (
@@ -803,9 +988,18 @@ export default function Landing() {
 
         {currentView === 'dashboard' && renderDashboard()}
         {currentView === 'profile' && renderProfileDashboard()}
+        {currentView === 'trip' && tripTab === 'create' && renderCreateTrip()}
+        {currentView === 'trip' && tripTab === 'mytrips' && renderMyTrips()}
         {currentView === 'trip' && tripTab === 'itinerary' && renderItinerary()}
+        {currentView === 'trip' && tripTab === 'itineraryview' && renderItineraryView()}
+        {currentView === 'trip' && tripTab === 'citysearch' && renderCitySearch()}
+        {currentView === 'trip' && tripTab === 'activitysearch' && renderActivitySearch()}
         {currentView === 'trip' && tripTab === 'budget' && renderBudget()}
+        {currentView === 'trip' && tripTab === 'packing' && renderPackingChecklist()}
+        {currentView === 'trip' && tripTab === 'notes' && renderTripNotes()}
         {currentView === 'trip' && tripTab === 'share' && renderShare()}
+        {currentView === 'trip' && tripTab === 'public' && renderPublicItinerary()}
+        {currentView === 'trip' && tripTab === 'settings' && renderUserSettings()}
       </main>
 
       <footer className="bg-[#111111] border-t border-[#1f1f1f] mt-16">
