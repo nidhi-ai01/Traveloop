@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Search, MapPin, Calendar, User, Plus, Map as MapIcon, DollarSign, Share2, Copy, Send, ChevronDown, Layers, SlidersHorizontal, ArrowUpDown, Settings, LogOut, X, NotebookPen, ListChecks, Globe2, Activity, ClipboardCheck, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import * as api from './api';
 
 export default function Landing() {
   const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' | 'trip' | 'profile'
@@ -8,6 +9,35 @@ export default function Landing() {
   const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+
+  // ─── Dynamic State ──────────────────────────────────────
+  const [trips, setTrips] = useState([]);
+  const [previousTrips, setPreviousTrips] = useState([]);
+  const [selectedTrip, setSelectedTrip] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+
+  // Create Trip Form
+  const [newTrip, setNewTrip] = useState({ name: '', destination: '', startDate: '', endDate: '', description: '' });
+
+  // Settings Form
+  const [settingsForm, setSettingsForm] = useState({ name: '', email: '' });
+
+  // Share
+  const [shareUrl, setShareUrl] = useState('');
+
+  // Packing
+  const [newPackingItem, setNewPackingItem] = useState('');
+
+  // Notes
+  const [newNote, setNewNote] = useState('');
+
+  // Budget
+  const [newBudget, setNewBudget] = useState({ category: 'transport', name: '', amount: '' });
+
+  // Itinerary
+  const [newStop, setNewStop] = useState({ title: '', time: '', type: 'activity' });
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -18,6 +48,26 @@ export default function Landing() {
     }
   }, [navigate]);
 
+  // ─── Data Fetching ──────────────────────────────────────
+  const fetchTrips = useCallback(async () => {
+    try {
+      const [upRes, prevRes] = await Promise.all([
+        api.getUpcomingTrips(),
+        api.getPreviousTrips()
+      ]);
+      setTrips(upRes.data);
+      setPreviousTrips(prevRes.data);
+    } catch (err) {
+      console.error('Failed to fetch trips:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user) fetchTrips();
+  }, [user, fetchTrips]);
+
+  // ─── Handlers ───────────────────────────────────────────
+
   // Handle Logout
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -25,148 +75,210 @@ export default function Landing() {
     navigate('/auth');
   };
 
-  const trips = [
-    {
-      id: 1,
-      name: 'Swiss Alps Retreat',
-      dates: 'Jan 05 - Jan 12, 2024',
-      destination: 'Switzerland',
-      isActive: true,
-      image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200'
-    },
-    {
-      id: 2,
-      name: 'Kyoto Spring',
-      dates: 'Apr 02 - Apr 14, 2024',
-      destination: 'Japan',
-      isActive: false,
-      image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1200'
-    },
-    {
-      id: 3,
-      name: 'Patagonia Expedition',
-      dates: 'Nov 10 - Nov 25, 2024',
-      destination: 'Chile/Argentina',
-      isActive: false,
-      image: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?q=80&w=1200'
-    },
-    {
-      id: 4,
-      name: 'Santorini Escape',
-      dates: 'Jun 08 - Jun 15, 2024',
-      destination: 'Greece',
-      isActive: false,
-      image: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?q=80&w=1200'
-    },
-    {
-      id: 5,
-      name: 'Bali Wellness',
-      dates: 'Aug 21 - Aug 29, 2024',
-      destination: 'Indonesia',
-      isActive: false,
-      image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1200'
+  const handleTripClick = async (id) => {
+    try {
+      setLoading(true);
+      const res = await api.getTripById(id);
+      setSelectedTrip(res.data);
+      setCurrentView('trip');
+      setTripTab('itinerary');
+    } catch (err) {
+      console.error('Failed to load trip:', err);
+    } finally {
+      setLoading(false);
     }
-  ];
-
-  const suggestedTrips = [
-    {
-      id: 101,
-      name: 'Bali Paradise',
-      type: 'Tropical',
-      duration: '7 Days',
-      price: '$850',
-      image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1000',
-      highlights: [
-        { name: 'Ubud Rice Terrace', image: 'https://images.unsplash.com/photo-1512100356356-de1b84283e18?q=80&w=800' },
-        { name: 'Ulun Danu Temple', image: 'https://images.unsplash.com/photo-1555400038-63f5ba517a47?q=80&w=800' },
-        { name: 'Nusa Penida', image: 'https://images.unsplash.com/photo-1558005530-a7958896ec60?q=80&w=800' }
-      ]
-    },
-    {
-      id: 102,
-      name: 'Tokyo Lights',
-      type: 'City',
-      duration: '5 Days',
-      price: '$1200',
-      image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1000',
-      highlights: [
-        { name: 'Shibuya Crossing', image: 'https://images.unsplash.com/photo-1536098561742-ca998e48cbcc?q=80&w=800' },
-        { name: 'Senso-ji Temple', image: 'https://images.unsplash.com/photo-1526481280695-3c4691d8d69e?q=80&w=800' },
-        { name: 'Tokyo Tower', image: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=800' }
-      ]
-    },
-    {
-      id: 103,
-      name: 'Santorini Escape',
-      type: 'Coastal',
-      duration: '6 Days',
-      price: '$1500',
-      image: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5f1?q=80&w=1000',
-      highlights: [
-        { name: 'Oia Sunset', image: 'https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?q=80&w=800' },
-        { name: 'Blue Domes', image: 'https://images.unsplash.com/photo-1571731956672-f2b94d7dd0cb?q=80&w=800' },
-        { name: 'Red Beach', image: 'https://images.unsplash.com/photo-1505765050516-f72dcac9c60e?q=80&w=800' }
-      ]
-    },
-    {
-      id: 104,
-      name: 'Machu Picchu',
-      type: 'Adventure',
-      duration: '10 Days',
-      price: '$950',
-      image: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?q=80&w=1000',
-      highlights: [
-        { name: 'Sun Gate', image: 'https://images.unsplash.com/photo-1526392060635-9d6019884377?q=80&w=800' },
-        { name: 'Temple of Sun', image: 'https://images.unsplash.com/photo-1622396488040-23ea2f7033f1?q=80&w=800' },
-        { name: 'Huayna Peak', image: 'https://images.unsplash.com/photo-1580619305218-8423a7ef79b4?q=80&w=800' }
-      ]
-    },
-    {
-      id: 105,
-      name: 'Northern Lights',
-      type: 'Winter',
-      duration: '4 Days',
-      price: '$1100',
-      image: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?q=80&w=1000',
-      highlights: [
-        { name: 'Aurora Camp', image: 'https://images.unsplash.com/photo-1483347756197-71ef80e95f73?q=80&w=800' },
-        { name: 'Ice Cave', image: 'https://images.unsplash.com/photo-1517329782449-810562a4ec2f?q=80&w=800' },
-        { name: 'Frozen Lake', image: 'https://images.unsplash.com/photo-1478059299873-f047d8c5fe1a?q=80&w=800' }
-      ]
-    }
-  ];
-
-  const previousTrips = [
-    {
-      id: 201,
-      name: 'Paris Getaway',
-      dates: 'Sep 12 - Sep 18, 2023',
-      destination: 'France',
-      isActive: false,
-      image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?q=80&w=1200'
-    },
-    {
-      id: 202,
-      name: 'Kerala Backwaters',
-      dates: 'Dec 05 - Dec 10, 2023',
-      destination: 'India',
-      isActive: false,
-      image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=80&w=1200'
-    },
-    {
-      id: 203,
-      name: 'New York Winter',
-      dates: 'Dec 20 - Dec 28, 2022',
-      destination: 'USA',
-      isActive: false,
-      image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=1200'
-    }
-  ];
-
-  const handleTripClick = (id) => {
-    setCurrentView('trip');
-    setTripTab('itinerary');
   };
+
+  const handleCreateTrip = async () => {
+    if (!newTrip.name) return alert('Trip name is required');
+    try {
+      setLoading(true);
+      await api.createTrip(newTrip);
+      setNewTrip({ name: '', destination: '', startDate: '', endDate: '', description: '' });
+      await fetchTrips();
+      setCurrentView('dashboard');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to create trip');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteTrip = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this trip?')) return;
+    try {
+      await api.deleteTrip(id);
+      await fetchTrips();
+      if (selectedTrip?._id === id) {
+        setSelectedTrip(null);
+        setCurrentView('dashboard');
+      }
+    } catch (err) {
+      alert('Failed to delete trip');
+    }
+  };
+
+  const handleSearch = async (q) => {
+    setSearchQuery(q);
+    if (!q.trim()) { setSearchResults([]); return; }
+    try {
+      const res = await api.searchTrips(q);
+      setSearchResults(res.data);
+    } catch (err) {
+      console.error('Search failed:', err);
+    }
+  };
+
+  const handleAddDay = async () => {
+    if (!selectedTrip) return;
+    try {
+      const res = await api.addDay(selectedTrip._id, { date: '' });
+      setSelectedTrip(res.data);
+    } catch (err) {
+      alert('Failed to add day');
+    }
+  };
+
+  const handleAddStop = async (dayId) => {
+    if (!newStop.title) return alert('Stop title is required');
+    try {
+      const res = await api.addStop(selectedTrip._id, dayId, newStop);
+      setSelectedTrip(res.data);
+      setNewStop({ title: '', time: '', type: 'activity' });
+    } catch (err) {
+      alert('Failed to add stop');
+    }
+  };
+
+  const handleDeleteStop = async (dayId, stopId) => {
+    try {
+      const res = await api.deleteStop(selectedTrip._id, dayId, stopId);
+      setSelectedTrip(res.data);
+    } catch (err) {
+      alert('Failed to delete stop');
+    }
+  };
+
+  const handleAddBudgetItem = async () => {
+    if (!newBudget.name || !newBudget.amount) return alert('Name and amount required');
+    try {
+      const res = await api.addBudgetItem(selectedTrip._id, { category: newBudget.category, name: newBudget.name, amount: Number(newBudget.amount) });
+      setSelectedTrip(res.data);
+      setNewBudget({ category: 'transport', name: '', amount: '' });
+    } catch (err) {
+      alert('Failed to add budget item');
+    }
+  };
+
+  const handleDeleteBudgetItem = async (category, itemId) => {
+    try {
+      const res = await api.deleteBudgetItem(selectedTrip._id, category, itemId);
+      setSelectedTrip(res.data);
+    } catch (err) {
+      alert('Failed to delete budget item');
+    }
+  };
+
+  const handleAddPackingItem = async () => {
+    if (!newPackingItem) return;
+    try {
+      const res = await api.addPackingItem(selectedTrip._id, { item: newPackingItem });
+      setSelectedTrip(res.data);
+      setNewPackingItem('');
+    } catch (err) {
+      alert('Failed to add packing item');
+    }
+  };
+
+  const handleTogglePacking = async (itemId) => {
+    try {
+      const res = await api.togglePackingItem(selectedTrip._id, itemId);
+      setSelectedTrip(res.data);
+    } catch (err) {
+      alert('Failed to toggle item');
+    }
+  };
+
+  const handleDeletePackingItem = async (itemId) => {
+    try {
+      const res = await api.deletePackingItem(selectedTrip._id, itemId);
+      setSelectedTrip(res.data);
+    } catch (err) {
+      alert('Failed to delete packing item');
+    }
+  };
+
+  const handleAddNote = async () => {
+    if (!newNote) return;
+    try {
+      const res = await api.addNote(selectedTrip._id, { content: newNote });
+      setSelectedTrip(res.data);
+      setNewNote('');
+    } catch (err) {
+      alert('Failed to add note');
+    }
+  };
+
+  const handleDeleteNote = async (noteId) => {
+    try {
+      const res = await api.deleteNote(selectedTrip._id, noteId);
+      setSelectedTrip(res.data);
+    } catch (err) {
+      alert('Failed to delete note');
+    }
+  };
+
+  const handleGenerateShareLink = async () => {
+    if (!selectedTrip) return;
+    try {
+      const res = await api.generateShareLink(selectedTrip._id);
+      setShareUrl(res.data.shareUrl);
+    } catch (err) {
+      alert('Failed to generate share link');
+    }
+  };
+
+  const handleCopyShareLink = () => {
+    if (shareUrl) {
+      navigator.clipboard.writeText(shareUrl);
+      alert('Link copied to clipboard!');
+    }
+  };
+
+  const handleUpdateProfile = async () => {
+    try {
+      const res = await api.updateProfile(settingsForm);
+      const updatedUser = res.data;
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      alert('Profile updated!');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to update profile');
+    }
+  };
+
+  // Helper: compute total budget for selectedTrip
+  const getTotalBudget = () => {
+    if (!selectedTrip?.budget) return 0;
+    const { transport, accommodation, activities } = selectedTrip.budget;
+    const sum = (arr) => (arr || []).reduce((s, i) => s + (i.amount || 0), 0);
+    return sum(transport) + sum(accommodation) + sum(activities);
+  };
+
+  const getCategoryTotal = (category) => {
+    if (!selectedTrip?.budget?.[category]) return 0;
+    return selectedTrip.budget[category].reduce((s, i) => s + (i.amount || 0), 0);
+  };
+
+
+  // Static suggested trips data (not user-specific)
+  const suggestedTrips = [
+    { id: 101, name: 'Bali Paradise', type: 'Tropical', duration: '7 Days', price: '$850', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1000', highlights: [{ name: 'Ubud Rice Terrace', image: 'https://images.unsplash.com/photo-1512100356356-de1b84283e18?q=80&w=800' }, { name: 'Ulun Danu Temple', image: 'https://images.unsplash.com/photo-1555400038-63f5ba517a47?q=80&w=800' }, { name: 'Nusa Penida', image: 'https://images.unsplash.com/photo-1558005530-a7958896ec60?q=80&w=800' }] },
+    { id: 102, name: 'Tokyo Lights', type: 'City', duration: '5 Days', price: '$1200', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1000', highlights: [{ name: 'Shibuya Crossing', image: 'https://images.unsplash.com/photo-1536098561742-ca998e48cbcc?q=80&w=800' }, { name: 'Senso-ji Temple', image: 'https://images.unsplash.com/photo-1526481280695-3c4691d8d69e?q=80&w=800' }, { name: 'Tokyo Tower', image: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=800' }] },
+    { id: 103, name: 'Santorini Escape', type: 'Coastal', duration: '6 Days', price: '$1500', image: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5f1?q=80&w=1000', highlights: [{ name: 'Oia Sunset', image: 'https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?q=80&w=800' }, { name: 'Blue Domes', image: 'https://images.unsplash.com/photo-1571731956672-f2b94d7dd0cb?q=80&w=800' }, { name: 'Red Beach', image: 'https://images.unsplash.com/photo-1505765050516-f72dcac9c60e?q=80&w=800' }] },
+    { id: 104, name: 'Machu Picchu', type: 'Adventure', duration: '10 Days', price: '$950', image: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?q=80&w=1000', highlights: [{ name: 'Sun Gate', image: 'https://images.unsplash.com/photo-1526392060635-9d6019884377?q=80&w=800' }, { name: 'Temple of Sun', image: 'https://images.unsplash.com/photo-1622396488040-23ea2f7033f1?q=80&w=800' }, { name: 'Huayna Peak', image: 'https://images.unsplash.com/photo-1580619305218-8423a7ef79b4?q=80&w=800' }] },
+    { id: 105, name: 'Northern Lights', type: 'Winter', duration: '4 Days', price: '$1100', image: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?q=80&w=1000', highlights: [{ name: 'Aurora Camp', image: 'https://images.unsplash.com/photo-1483347756197-71ef80e95f73?q=80&w=800' }, { name: 'Ice Cave', image: 'https://images.unsplash.com/photo-1517329782449-810562a4ec2f?q=80&w=800' }, { name: 'Frozen Lake', image: 'https://images.unsplash.com/photo-1478059299873-f047d8c5fe1a?q=80&w=800' }] }
+  ];
 
   const renderDashboard = () => (
     <div className="max-w-6xl mx-auto px-6 py-12">
@@ -253,14 +365,20 @@ export default function Landing() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        {trips.length === 0 && (
+          <div className="col-span-full text-center py-16 text-gray-500">
+            <p className="text-lg font-bold mb-2">No upcoming trips yet</p>
+            <p className="text-sm">Click the + button to create your first trip!</p>
+          </div>
+        )}
         {trips.map(trip => (
           <div 
-            key={trip.id} 
-            onClick={() => handleTripClick(trip.id)}
+            key={trip._id} 
+            onClick={() => handleTripClick(trip._id)}
             className={`bg-[#152010] aspect-[9/16] rounded-2xl p-6 cursor-pointer relative group shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between border ${trip.isActive ? 'border-[#749962]' : 'border-white/10'}`}
           >
             <img
-              src={trip.image}
+              src={trip.image || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1200'}
               alt={trip.name}
               className="absolute inset-0 w-full h-full object-cover rounded-2xl opacity-40 group-hover:opacity-50 transition-opacity duration-300"
             />
@@ -279,16 +397,16 @@ export default function Landing() {
             {/* Bottom Section */}
             <div className="relative z-10">
               <div className="flex items-center gap-2 text-[#c6e3b6] text-sm mb-3">
-                <Calendar size={14} className="text-[#749962]" /> <span>{trip.dates}</span>
+                <Calendar size={14} className="text-[#749962]" /> <span>{trip.startDate || 'No date'}{trip.endDate ? ` - ${trip.endDate}` : ''}</span>
               </div>
               <div className="flex items-center gap-2 text-[#c6e3b6] text-sm mb-6">
-                <MapPin size={14} className="text-[#749962]" /> <span>{trip.destination}</span>
+                <MapPin size={14} className="text-[#749962]" /> <span>{trip.destination || 'No destination'}</span>
               </div>
               <div className="flex items-center justify-between border-t border-white/10 pt-4 mt-auto">
                  <button
                    onClick={(e) => {
                      e.stopPropagation();
-                     handleTripClick(trip.id);
+                     handleTripClick(trip._id);
                    }}
                    className="text-sm font-bold text-[#c6e3b6] hover:text-white transition-colors"
                  >
@@ -361,12 +479,12 @@ export default function Landing() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {previousTrips.map(trip => (
             <div 
-              key={trip.id} 
-              onClick={() => handleTripClick(trip.id)}
+              key={trip._id} 
+              onClick={() => handleTripClick(trip._id)}
               className="bg-[#152010] aspect-[3/4] rounded-2xl p-6 cursor-pointer relative group shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between border border-white/10"
             >
               <img
-                src={trip.image}
+                src={trip.image || 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?q=80&w=1200'}
                 alt={trip.name}
                 className="absolute inset-0 w-full h-full object-cover rounded-2xl opacity-30 group-hover:opacity-50 transition-opacity duration-300 grayscale group-hover:grayscale-0"
               />
@@ -380,16 +498,16 @@ export default function Landing() {
               {/* Bottom Section */}
               <div className="relative z-10">
                 <div className="flex items-center gap-2 text-[#c6e3b6] text-sm mb-3">
-                  <Calendar size={14} className="text-[#749962]" /> <span>{trip.dates}</span>
+                  <Calendar size={14} className="text-[#749962]" /> <span>{trip.startDate || 'No date'}{trip.endDate ? ` - ${trip.endDate}` : ''}</span>
                 </div>
                 <div className="flex items-center gap-2 text-[#c6e3b6] text-sm mb-6">
-                  <MapPin size={14} className="text-[#749962]" /> <span>{trip.destination}</span>
+                  <MapPin size={14} className="text-[#749962]" /> <span>{trip.destination || 'No destination'}</span>
                 </div>
                 <div className="flex items-center justify-between border-t border-white/10 pt-4 mt-auto">
                    <button
                      onClick={(e) => {
                        e.stopPropagation();
-                       handleTripClick(trip.id);
+                       handleTripClick(trip._id);
                      }}
                      className="text-sm font-bold text-[#c6e3b6] hover:text-white transition-colors"
                    >
@@ -519,85 +637,77 @@ export default function Landing() {
     </div>
   );
 
-  const renderBudget = () => (
+  const renderBudget = () => {
+    const total = getTotalBudget();
+    const transportTotal = getCategoryTotal('transport');
+    const accommodationTotal = getCategoryTotal('accommodation');
+    const activitiesTotal = getCategoryTotal('activities');
+    const maxCat = Math.max(transportTotal, accommodationTotal, activitiesTotal, 1);
+
+    return (
     <div className="max-w-5xl mx-auto px-6 py-12">
-       {/* Main Total Card */}
        <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-10 mb-10 text-center relative overflow-hidden shadow-lg">
           <div className="absolute top-0 left-0 w-2 h-full bg-[#749962]"></div>
           <h2 className="text-gray-400 text-xs uppercase tracking-widest font-bold mb-3">Total Estimated Cost</h2>
-          <div className="text-5xl md:text-7xl font-black text-white tracking-tighter">$4,250<span className="text-3xl text-gray-600 font-medium">.00</span></div>
+          <div className="text-5xl md:text-7xl font-black text-white tracking-tighter">${total.toLocaleString()}<span className="text-3xl text-gray-600 font-medium">.00</span></div>
        </div>
-
-       {/* Category Breakdown */}
+       <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-6 mb-6">
+          <h3 className="text-white font-bold text-sm uppercase tracking-wide mb-4">Add Expense</h3>
+          <div className="flex flex-wrap gap-3">
+             <select value={newBudget.category} onChange={(e) => setNewBudget({...newBudget, category: e.target.value})} className="bg-[#111] border border-gray-700 text-white rounded-lg px-4 py-3 outline-none">
+               <option value="transport">Transport</option>
+               <option value="accommodation">Accommodation</option>
+               <option value="activities">Activities</option>
+             </select>
+             <input value={newBudget.name} onChange={(e) => setNewBudget({...newBudget, name: e.target.value})} placeholder="Item name" className="flex-1 min-w-[150px] bg-[#111] border border-gray-700 text-white rounded-lg px-4 py-3 outline-none placeholder-gray-500" />
+             <input value={newBudget.amount} onChange={(e) => setNewBudget({...newBudget, amount: e.target.value})} type="number" placeholder="Amount ($)" className="w-32 bg-[#111] border border-gray-700 text-white rounded-lg px-4 py-3 outline-none placeholder-gray-500" />
+             <button onClick={handleAddBudgetItem} className="bg-[#749962] text-white px-5 py-3 rounded-lg font-bold hover:bg-[#608250] transition">Add</button>
+          </div>
+       </div>
        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 1 */}
           <div className="bg-[#1a1a1a] border border-gray-800 p-6 rounded-2xl hover:border-gray-700 transition">
-             <h3 className="text-white font-bold text-sm uppercase tracking-wide mb-6 flex items-center justify-between">
-               Flights/Transport
-               <DollarSign size={16} className="text-gray-500" />
-             </h3>
-             <div className="text-4xl font-bold text-[#749962] mb-6">$1,200</div>
-             <div className="w-full bg-[#111] h-2.5 rounded-full overflow-hidden mb-6">
-                <div className="bg-[#749962] h-full rounded-full" style={{ width: '60%' }}></div>
-             </div>
+             <h3 className="text-white font-bold text-sm uppercase tracking-wide mb-6 flex items-center justify-between">Flights/Transport<DollarSign size={16} className="text-gray-500" /></h3>
+             <div className="text-4xl font-bold text-[#749962] mb-6">${transportTotal.toLocaleString()}</div>
+             <div className="w-full bg-[#111] h-2.5 rounded-full overflow-hidden mb-6"><div className="bg-[#749962] h-full rounded-full" style={{ width: `${(transportTotal / maxCat) * 100}%` }}></div></div>
              <div className="space-y-4">
-                <div className="flex justify-between text-sm border-b border-gray-800 pb-3">
-                   <span className="text-gray-400">Flight LX38</span>
-                   <span className="text-white font-bold">$850</span>
-                </div>
-                <div className="flex justify-between text-sm border-b border-gray-800 pb-3">
-                   <span className="text-gray-400">Train Pass</span>
-                   <span className="text-white font-bold">$350</span>
-                </div>
+                {(selectedTrip?.budget?.transport || []).map(item => (
+                  <div key={item._id} className="flex justify-between text-sm border-b border-gray-800 pb-3">
+                     <span className="text-gray-400">{item.name}</span>
+                     <div className="flex items-center gap-2"><span className="text-white font-bold">${item.amount}</span><button onClick={() => handleDeleteBudgetItem('transport', item._id)} className="text-red-400 text-xs hover:text-red-500">×</button></div>
+                  </div>
+                ))}
              </div>
           </div>
-
-          {/* Card 2 */}
           <div className="bg-[#1a1a1a] border border-gray-800 p-6 rounded-2xl hover:border-gray-700 transition">
-             <h3 className="text-white font-bold text-sm uppercase tracking-wide mb-6 flex items-center justify-between">
-               Accommodation
-               <DollarSign size={16} className="text-gray-500" />
-             </h3>
-             <div className="text-4xl font-bold text-[#a3ff00] mb-6">$1,800</div> {/* Neon green highlight */}
-             <div className="w-full bg-[#111] h-2.5 rounded-full overflow-hidden mb-6">
-                <div className="bg-[#a3ff00] h-full rounded-full shadow-[0_0_10px_rgba(163,255,0,0.3)]" style={{ width: '80%' }}></div>
-             </div>
+             <h3 className="text-white font-bold text-sm uppercase tracking-wide mb-6 flex items-center justify-between">Accommodation<DollarSign size={16} className="text-gray-500" /></h3>
+             <div className="text-4xl font-bold text-[#a3ff00] mb-6">${accommodationTotal.toLocaleString()}</div>
+             <div className="w-full bg-[#111] h-2.5 rounded-full overflow-hidden mb-6"><div className="bg-[#a3ff00] h-full rounded-full shadow-[0_0_10px_rgba(163,255,0,0.3)]" style={{ width: `${(accommodationTotal / maxCat) * 100}%` }}></div></div>
              <div className="space-y-4">
-                <div className="flex justify-between text-sm border-b border-gray-800 pb-3">
-                   <span className="text-gray-400">Hotel Alpine (5n)</span>
-                   <span className="text-white font-bold">$1500</span>
-                </div>
-                <div className="flex justify-between text-sm border-b border-gray-800 pb-3">
-                   <span className="text-gray-400">Cabin Stay (1n)</span>
-                   <span className="text-white font-bold">$300</span>
-                </div>
+                {(selectedTrip?.budget?.accommodation || []).map(item => (
+                  <div key={item._id} className="flex justify-between text-sm border-b border-gray-800 pb-3">
+                     <span className="text-gray-400">{item.name}</span>
+                     <div className="flex items-center gap-2"><span className="text-white font-bold">${item.amount}</span><button onClick={() => handleDeleteBudgetItem('accommodation', item._id)} className="text-red-400 text-xs hover:text-red-500">×</button></div>
+                  </div>
+                ))}
              </div>
           </div>
-
-          {/* Card 3 */}
           <div className="bg-[#1a1a1a] border border-gray-800 p-6 rounded-2xl hover:border-gray-700 transition">
-             <h3 className="text-white font-bold text-sm uppercase tracking-wide mb-6 flex items-center justify-between">
-               Activities & Meals
-               <DollarSign size={16} className="text-gray-500" />
-             </h3>
-             <div className="text-4xl font-bold text-[#e6b333] mb-6">$1,250</div> {/* Golden highlight */}
-             <div className="w-full bg-[#111] h-2.5 rounded-full overflow-hidden mb-6">
-                <div className="bg-[#e6b333] h-full rounded-full" style={{ width: '45%' }}></div>
-             </div>
+             <h3 className="text-white font-bold text-sm uppercase tracking-wide mb-6 flex items-center justify-between">Activities & Meals<DollarSign size={16} className="text-gray-500" /></h3>
+             <div className="text-4xl font-bold text-[#e6b333] mb-6">${activitiesTotal.toLocaleString()}</div>
+             <div className="w-full bg-[#111] h-2.5 rounded-full overflow-hidden mb-6"><div className="bg-[#e6b333] h-full rounded-full" style={{ width: `${(activitiesTotal / maxCat) * 100}%` }}></div></div>
              <div className="space-y-4">
-                <div className="flex justify-between text-sm border-b border-gray-800 pb-3">
-                   <span className="text-gray-400">Ski Pass</span>
-                   <span className="text-white font-bold">$400</span>
-                </div>
-                <div className="flex justify-between text-sm border-b border-gray-800 pb-3">
-                   <span className="text-gray-400">Fine Dining</span>
-                   <span className="text-white font-bold">$250</span>
-                </div>
+                {(selectedTrip?.budget?.activities || []).map(item => (
+                  <div key={item._id} className="flex justify-between text-sm border-b border-gray-800 pb-3">
+                     <span className="text-gray-400">{item.name}</span>
+                     <div className="flex items-center gap-2"><span className="text-white font-bold">${item.amount}</span><button onClick={() => handleDeleteBudgetItem('activities', item._id)} className="text-red-400 text-xs hover:text-red-500">×</button></div>
+                  </div>
+                ))}
              </div>
           </div>
        </div>
     </div>
-  );
+    );
+  };
 
   const renderShare = () => (
     <div className="max-w-xl mx-auto px-6 py-24 text-center">
@@ -609,21 +719,23 @@ export default function Landing() {
           <h2 className="text-3xl font-black text-white mb-3">Share the Journey</h2>
           <p className="text-gray-400 text-sm mb-10 leading-relaxed">Generate a unique link to share your itinerary and budget with friends, family, or travel companions. They will have read-only access.</p>
           
-          <div className="w-full bg-[#111] border border-gray-700 rounded-xl p-2.5 flex items-center gap-3 mb-8">
-             <input 
-               type="text" 
-               readOnly 
-               value="https://traveloop.app/t/swiss-alps-x9y2z" 
-               className="flex-1 bg-transparent text-gray-300 text-sm outline-none px-3 font-mono"
-             />
-             <button className="bg-[#749962] hover:bg-[#608250] text-white px-5 py-2.5 rounded-lg text-sm font-bold transition flex items-center gap-2 shadow-sm">
-                <Copy size={16} /> Copy
-             </button>
-          </div>
-
-          <button className="w-full border-2 border-[#749962] text-[#749962] hover:bg-[#749962] hover:text-white transition-colors py-4 rounded-xl font-bold flex items-center justify-center gap-2 text-sm">
-             <Send size={18} /> Share to WhatsApp / Email
-          </button>
+          {!shareUrl ? (
+            <button onClick={handleGenerateShareLink} className="w-full bg-[#749962] hover:bg-[#608250] text-white py-4 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm">
+               <Share2 size={18} /> Generate Share Link
+            </button>
+          ) : (
+            <>
+              <div className="w-full bg-[#111] border border-gray-700 rounded-xl p-2.5 flex items-center gap-3 mb-8">
+                 <input type="text" readOnly value={shareUrl} className="flex-1 bg-transparent text-gray-300 text-sm outline-none px-3 font-mono" />
+                 <button onClick={handleCopyShareLink} className="bg-[#749962] hover:bg-[#608250] text-white px-5 py-2.5 rounded-lg text-sm font-bold transition flex items-center gap-2 shadow-sm">
+                    <Copy size={16} /> Copy
+                 </button>
+              </div>
+              <button className="w-full border-2 border-[#749962] text-[#749962] hover:bg-[#749962] hover:text-white transition-colors py-4 rounded-xl font-bold flex items-center justify-center gap-2 text-sm">
+                 <Send size={18} /> Share to WhatsApp / Email
+              </button>
+            </>
+          )}
        </div>
     </div>
   );
@@ -633,13 +745,15 @@ export default function Landing() {
       <div className="bg-white border border-[#d6e7cc] rounded-2xl p-6 md:p-8 shadow-sm">
         <h2 className="text-2xl font-black text-[#152010] mb-6">Create New Trip</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <input className="bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" placeholder="Trip name" />
-          <input className="bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" placeholder="Destination / Region" />
-          <input className="bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" placeholder="Start date" />
-          <input className="bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" placeholder="End date" />
-          <textarea className="md:col-span-2 bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962] min-h-28" placeholder="Trip description..." />
+          <input value={newTrip.name} onChange={(e) => setNewTrip({...newTrip, name: e.target.value})} className="bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" placeholder="Trip name" />
+          <input value={newTrip.destination} onChange={(e) => setNewTrip({...newTrip, destination: e.target.value})} className="bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" placeholder="Destination / Region" />
+          <input value={newTrip.startDate} onChange={(e) => setNewTrip({...newTrip, startDate: e.target.value})} type="date" className="bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" placeholder="Start date" />
+          <input value={newTrip.endDate} onChange={(e) => setNewTrip({...newTrip, endDate: e.target.value})} type="date" className="bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" placeholder="End date" />
+          <textarea value={newTrip.description} onChange={(e) => setNewTrip({...newTrip, description: e.target.value})} className="md:col-span-2 bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962] min-h-28" placeholder="Trip description..." />
         </div>
-        <button className="mt-6 px-6 py-3 rounded-xl bg-[#749962] text-white font-bold hover:bg-[#608250] transition-colors">Save Trip</button>
+        <button onClick={handleCreateTrip} disabled={loading} className="mt-6 px-6 py-3 rounded-xl bg-[#749962] text-white font-bold hover:bg-[#608250] transition-colors disabled:opacity-50">
+          {loading ? 'Saving...' : 'Save Trip'}
+        </button>
       </div>
     </div>
   );
@@ -648,14 +762,14 @@ export default function Landing() {
     <div className="max-w-6xl mx-auto px-6 py-12">
       <h2 className="text-2xl font-black text-[#152010] mb-6">My Trips</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {trips.map((trip) => (
-          <div key={trip.id} className="bg-white border border-[#d6e7cc] rounded-2xl p-4 shadow-sm">
-            <div className="h-40 rounded-xl overflow-hidden mb-4"><img src={trip.image} alt={trip.name} className="w-full h-full object-cover" /></div>
+        {[...trips, ...previousTrips].map((trip) => (
+          <div key={trip._id} className="bg-white border border-[#d6e7cc] rounded-2xl p-4 shadow-sm">
+            <div className="h-40 rounded-xl overflow-hidden mb-4"><img src={trip.image || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800'} alt={trip.name} className="w-full h-full object-cover" /></div>
             <h3 className="font-bold text-[#152010]">{trip.name}</h3>
-            <p className="text-sm text-[#608250] mt-1">{trip.dates}</p>
+            <p className="text-sm text-[#608250] mt-1">{trip.startDate || 'No date'}{trip.endDate ? ` - ${trip.endDate}` : ''}</p>
             <div className="flex gap-2 mt-4">
-              <button onClick={() => setTripTab('itinerary')} className="px-4 py-2 rounded-lg bg-[#edf6e7] text-[#152010] font-semibold">View</button>
-              <button className="px-4 py-2 rounded-lg border border-[#d6e7cc] text-[#608250] font-semibold">Edit</button>
+              <button onClick={() => handleTripClick(trip._id)} className="px-4 py-2 rounded-lg bg-[#edf6e7] text-[#152010] font-semibold">View</button>
+              <button onClick={() => handleDeleteTrip(trip._id)} className="px-4 py-2 rounded-lg border border-red-200 text-red-500 font-semibold hover:bg-red-50">Delete</button>
             </div>
           </div>
         ))}
@@ -665,18 +779,25 @@ export default function Landing() {
 
   const renderItineraryView = () => (
     <div className="max-w-6xl mx-auto px-6 py-12">
-      <h2 className="text-2xl font-black text-[#152010] mb-6">Itinerary View</h2>
+      <h2 className="text-2xl font-black text-[#152010] mb-6">Itinerary View{selectedTrip ? ` — ${selectedTrip.name}` : ''}</h2>
       <div className="space-y-4">
-        {['Day 1 - Zurich', 'Day 2 - Lucerne', 'Day 3 - Interlaken'].map((day) => (
-          <div key={day} className="bg-white border border-[#d6e7cc] rounded-2xl p-5">
-            <h3 className="font-bold text-[#152010] mb-3">{day}</h3>
+        {(selectedTrip?.days || []).map((day) => (
+          <div key={day._id} className="bg-white border border-[#d6e7cc] rounded-2xl p-5">
+            <h3 className="font-bold text-[#152010] mb-3">Day {day.dayNumber} {day.date ? `— ${day.date}` : ''}</h3>
             <div className="space-y-2 text-sm text-gray-700">
-              <p>10:00 AM - Arrival and hotel check-in</p>
-              <p>01:00 PM - Local city tour</p>
-              <p>06:00 PM - Dinner and free walk</p>
+              {day.stops.map((stop) => (
+                <div key={stop._id} className="flex items-center justify-between">
+                  <p>{stop.time ? `${stop.time} - ` : ''}{stop.title}</p>
+                  <button onClick={() => handleDeleteStop(day._id, stop._id)} className="text-xs text-red-400 hover:text-red-600">Remove</button>
+                </div>
+              ))}
+              {day.stops.length === 0 && <p className="text-gray-400">No stops added yet</p>}
             </div>
           </div>
         ))}
+        {(!selectedTrip?.days || selectedTrip.days.length === 0) && (
+          <p className="text-gray-500 text-center py-8">No days added yet. Click "Add Day" in the Builder tab.</p>
+        )}
       </div>
     </div>
   );
@@ -723,28 +844,46 @@ export default function Landing() {
 
   const renderPackingChecklist = () => (
     <div className="max-w-4xl mx-auto px-6 py-12">
-      <h2 className="text-2xl font-black text-[#152010] mb-6">Packing Checklist</h2>
-      <div className="bg-white border border-[#d6e7cc] rounded-2xl p-6 space-y-3">
-        {['Passport', 'Travel Insurance', 'Power Bank', 'Warm Jacket', 'Medicines'].map((item, idx) => (
-          <label key={item} className="flex items-center gap-3 text-[#152010]">
-            <input type="checkbox" defaultChecked={idx < 2} className="accent-[#749962]" />
-            {item}
-          </label>
-        ))}
+      <h2 className="text-2xl font-black text-[#152010] mb-6">Packing Checklist{selectedTrip ? ` — ${selectedTrip.name}` : ''}</h2>
+      <div className="bg-white border border-[#d6e7cc] rounded-2xl p-6">
+        <div className="flex gap-3 mb-6">
+          <input value={newPackingItem} onChange={(e) => setNewPackingItem(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddPackingItem()} className="flex-1 bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" placeholder="Add item (e.g. Passport, Charger...)" />
+          <button onClick={handleAddPackingItem} className="px-5 py-3 rounded-xl bg-[#749962] text-white font-bold">Add</button>
+        </div>
+        <div className="space-y-3">
+          {(selectedTrip?.packingList || []).map((item) => (
+            <div key={item._id} className="flex items-center justify-between">
+              <label className="flex items-center gap-3 text-[#152010] cursor-pointer">
+                <input type="checkbox" checked={item.checked} onChange={() => handleTogglePacking(item._id)} className="accent-[#749962]" />
+                <span className={item.checked ? 'line-through text-gray-400' : ''}>{item.item}</span>
+              </label>
+              <button onClick={() => handleDeletePackingItem(item._id)} className="text-xs text-red-400 hover:text-red-600">Remove</button>
+            </div>
+          ))}
+          {(!selectedTrip?.packingList || selectedTrip.packingList.length === 0) && <p className="text-gray-400 text-center py-4">No items yet. Add your first packing item above!</p>}
+        </div>
       </div>
     </div>
   );
 
   const renderTripNotes = () => (
     <div className="max-w-5xl mx-auto px-6 py-12">
-      <h2 className="text-2xl font-black text-[#152010] mb-6">Trip Notes / Journal</h2>
+      <h2 className="text-2xl font-black text-[#152010] mb-6">Trip Notes / Journal{selectedTrip ? ` — ${selectedTrip.name}` : ''}</h2>
+      <div className="flex gap-3 mb-6">
+        <textarea value={newNote} onChange={(e) => setNewNote(e.target.value)} className="flex-1 bg-white border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962] min-h-20" placeholder="Write a note..." />
+        <button onClick={handleAddNote} className="px-5 py-3 rounded-xl bg-[#749962] text-white font-bold self-end">Add</button>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {['Hotel check-in at 2 PM', 'Carry local cash for markets', 'Book sunset cruise on Day 3'].map((note, idx) => (
-          <div key={idx} className="bg-white border border-[#d6e7cc] rounded-xl p-4">
-            <p className="text-[#152010]">{note}</p>
-            <p className="text-xs text-[#608250] mt-3">Updated today</p>
+        {(selectedTrip?.notes || []).map((note) => (
+          <div key={note._id} className="bg-white border border-[#d6e7cc] rounded-xl p-4">
+            <p className="text-[#152010]">{note.content}</p>
+            <div className="flex items-center justify-between mt-3">
+              <p className="text-xs text-[#608250]">{new Date(note.updatedAt).toLocaleDateString()}</p>
+              <button onClick={() => handleDeleteNote(note._id)} className="text-xs text-red-400 hover:text-red-600">Delete</button>
+            </div>
           </div>
         ))}
+        {(!selectedTrip?.notes || selectedTrip.notes.length === 0) && <p className="col-span-full text-gray-400 text-center py-8">No notes yet.</p>}
       </div>
     </div>
   );
@@ -753,13 +892,19 @@ export default function Landing() {
     <div className="max-w-4xl mx-auto px-6 py-12">
       <h2 className="text-2xl font-black text-[#152010] mb-6">User Settings</h2>
       <div className="bg-white border border-[#d6e7cc] rounded-2xl p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
-        <input className="bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" defaultValue={user?.name || 'Explorer'} />
-        <input className="bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" defaultValue={user?.email || 'user@example.com'} />
+        <div>
+          <label className="text-xs font-bold text-[#608250] uppercase tracking-wider mb-1 block">Name</label>
+          <input value={settingsForm.name} onChange={(e) => setSettingsForm({...settingsForm, name: e.target.value})} className="w-full bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" placeholder={user?.name || 'Your name'} />
+        </div>
+        <div>
+          <label className="text-xs font-bold text-[#608250] uppercase tracking-wider mb-1 block">Email</label>
+          <input value={settingsForm.email} onChange={(e) => setSettingsForm({...settingsForm, email: e.target.value})} className="w-full bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]" placeholder={user?.email || 'Your email'} />
+        </div>
         <select className="bg-[#f8fcf5] border border-[#d6e7cc] rounded-xl px-4 py-3 outline-none focus:border-[#749962]">
           <option>English</option>
           <option>Hindi</option>
         </select>
-        <button className="px-5 py-3 rounded-xl bg-[#749962] text-white font-bold">Save Changes</button>
+        <button onClick={handleUpdateProfile} className="px-5 py-3 rounded-xl bg-[#749962] text-white font-bold hover:bg-[#608250] transition-colors">Save Changes</button>
       </div>
     </div>
   );
