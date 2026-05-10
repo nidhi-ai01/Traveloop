@@ -20,7 +20,7 @@ function CreateTrip() {
         try {
             setLoading(true);
             const response = await fetch(
-                "http://localhost:5001/api/trips/generate",
+                "http://localhost:5001/api/ai/generate",
                 {
                     method: "POST",
                     headers: {
