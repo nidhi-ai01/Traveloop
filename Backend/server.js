@@ -14,7 +14,12 @@ app.use("/api/trips", tripRoutes);
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
+const tripRoutes = require('./routes/tripRoutes');
+const userRoutes = require('./routes/userRoutes');
+
 app.use('/api/auth', authRoutes);
+app.use('/api/trips', tripRoutes);
+app.use('/api/user', userRoutes);
 
 // Basic Route
 app.get('/', (req, res) => {
