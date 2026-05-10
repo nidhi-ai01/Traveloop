@@ -1,4 +1,5 @@
 require('dotenv').config();
+const tripRoutes = require("./routes/tripRoutes");
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
@@ -9,6 +10,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use("/api/trips", tripRoutes);
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
