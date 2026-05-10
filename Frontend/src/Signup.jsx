@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Grid, MapPin, Eye, Check, Navigation, Mountain } from 'lucide-react';
 import forestImg from './assets/forest.png';
 import vanImg from './assets/van.png';
@@ -6,6 +7,7 @@ import vanImg from './assets/van.png';
 export default function Signup() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isLogin, setIsLogin] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div className="h-screen bg-[#3A512F] p-4 md:p-6 flex items-center justify-center font-sans overflow-hidden">
@@ -117,7 +119,10 @@ export default function Signup() {
               </div>
 
               {/* Submit Button */}
-              <button className="w-full bg-[#0E190A] text-white rounded-2xl py-3 font-bold relative overflow-hidden group shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition">
+              <button 
+                onClick={() => navigate('/dashboard')}
+                className="w-full bg-[#0E190A] text-white rounded-2xl py-3 font-bold relative overflow-hidden group shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition"
+              >
                 <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9IjAiPjwvcmVjdD4KPGNpcmNsZSBjeD0iNCIgY3k9IjQiIHI9IjAuNSIgZmlsbD0iI2ZmZiI+PC9jaXJjbGU+Cjwvc3ZnPg==')]"></div>
                 <span className="relative z-10 flex items-center justify-center gap-2">
                   {isLogin ? 'Sign In' : 'Start your adventure'}
