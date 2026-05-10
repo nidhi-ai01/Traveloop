@@ -52,19 +52,22 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { identifier, password } = req.body;
 
-        if (!email || !password) {
+        if (!identifier || !password) {
             return res.status(400).json({
                 message: "All fields are required",
             });
         }
 
-        const user = await User.findOne({ email });
+        // Allow login via email OR username (name field)
+        const user = await User.findOne({
+            $or: [{ email: identifier }, { name: identifier }],
+        });
 
         if (!user) {
             return res.status(400).json({
-                message: "Invalid email or password",
+                message: "Invalid credentials",
             });
         }
 
@@ -72,7 +75,7 @@ const loginUser = async (req, res) => {
 
         if (!isMatch) {
             return res.status(400).json({
-                message: "Invalid email or password",
+                message: "Invalid credentials",
             });
         }
 

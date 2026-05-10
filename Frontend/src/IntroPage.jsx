@@ -100,9 +100,6 @@ export default function IntroPage() {
                 <h1 className="text-6xl md:text-[9rem] font-black tracking-tighter text-white leading-none mb-6">
                   {DOJO_STEPS[activeStep].label}
                 </h1>
-                <p className="text-white/50 text-lg md:text-2xl font-medium tracking-wide">
-                  {DOJO_STEPS[activeStep].sub}
-                </p>
               </motion.div>
             </AnimatePresence>
           </div>

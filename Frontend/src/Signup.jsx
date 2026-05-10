@@ -43,7 +43,7 @@ export default function Signup() {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/auth/register",
+        "http://localhost:5001/api/auth/register",
         { name, email, password }
       );
       console.log(response.data);
@@ -67,8 +67,8 @@ export default function Signup() {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        { email, password }
+        "http://localhost:5001/api/auth/login",
+        { identifier: email, password }
       );
       console.log(response.data);
       localStorage.setItem("token", response.data.token);
@@ -177,12 +177,12 @@ export default function Signup() {
                 )}
 
                 <div className="relative border border-gray-200 rounded-2xl px-4 py-1.5 bg-white focus-within:border-gray-400 transition shadow-sm">
-                  <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Email</label>
+                  <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">{isLogin ? 'User ID / Email' : 'Email'}</label>
                   <input
-                    type="email"
+                    type="text"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
+                    placeholder={isLogin ? 'Username or email' : 'you@example.com'}
                     className="w-full bg-transparent outline-none text-gray-900 text-sm font-medium pt-0.5 pb-1 placeholder:text-gray-300"
                   />
                 </div>
@@ -200,8 +200,8 @@ export default function Signup() {
                       />
                     </div>
                     <div className="flex items-center gap-2 ml-2">
-                      {/* Dynamic password strength badge */}
-                      {password.length > 0 && (
+                      {/* Dynamic password strength badge — only on signup */}
+                      {!isLogin && password.length > 0 && (
                         <div className={`flex items-center gap-1 ${passwordStrength.bgColor} ${passwordStrength.color} px-2 py-1 rounded-md text-[10px] font-bold tracking-wide whitespace-nowrap transition-all duration-300`}>
                           {passwordStrength.label}
                           {passwordStrength.score >= 4 ? <Check size={12} strokeWidth={3} /> : passwordStrength.score <= 1 ? <X size={12} strokeWidth={3} /> : null}
@@ -217,8 +217,8 @@ export default function Signup() {
                     </div>
                   </div>
 
-                  {/* Password strength bar */}
-                  {password.length > 0 && (
+                  {/* Password strength bar — only on signup */}
+                  {!isLogin && password.length > 0 && (
                     <div className="flex gap-1 mt-1.5 mb-0.5">
                       {[1, 2, 3, 4, 5].map((level) => (
                         <div
