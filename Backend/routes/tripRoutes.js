@@ -10,34 +10,37 @@ router.post("/generate", async (req, res) => {
         const { place, startDate, endDate } = req.body;
 
         const prompt = `
-You are an intelligent travel AI.
+You are an intelligent travel recommendation AI.
 
-User Details:
-Current Place: ${place}
-Start Date: ${startDate}
-End Date: ${endDate}
+User wants travel suggestions related to:
+Destination Interest: ${place}
+Trip Start Date: ${startDate}
+Trip End Date: ${endDate}
 
-Suggest exactly 4 BEST travel destinations based on the user's input.
+Suggest exactly 4 destinations that are highly relevant to the user's selected place or nearby travel experience.
 
-For each destination return:
-- destination name
-- beautiful travel image URL from Unsplash
-- short tagline
+If user enters:
+- London → suggest nearby Europe trips
+- India → suggest Indian tourist places
+- Japan → suggest Japanese destinations
+- Beach → suggest beach destinations
 
 Return ONLY valid JSON.
 
 Format:
 [
   {
-    "name": "Bali",
-    "image": "https://source.unsplash.com/600x400/?bali,travel",
-    "tagline": "Tropical paradise with beaches"
+    "name": "Paris",
+    "image": "https://source.unsplash.com/600x400/?Paris,travel",
+    "tagline": "Romantic city with iconic landmarks"
   }
 ]
 
-DO NOT write explanation.
-DO NOT use markdown.
-ONLY return JSON array.
+Rules:
+- Only JSON
+- No markdown
+- No explanation
+- Always include image URL
 `;
 
         const response = await axios.post(
