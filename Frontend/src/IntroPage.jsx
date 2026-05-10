@@ -1,206 +1,215 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, useScroll } from 'framer-motion';
-import { ChevronRight } from 'lucide-react';
-import ShinyText from './components/landing/ShinyText';
+import { motion, AnimatePresence, useScroll, useTransform, useInView, useMotionValueEvent } from 'framer-motion';
 import StickyStepCard, { STEPS } from './components/landing/StickyStepCard';
-import CpuArchitecture from './components/landing/CpuArchitecture';
 import Particles from './components/landing/Particles';
+import ShinyText from './components/landing/ShinyText';
+import CpuArchitecture from './components/landing/CpuArchitecture';
+
+const DOJO_STEPS = [
+  { label: 'Smart Itineraries' },
+  { label: 'Discover & Explore' },
+  { label: 'Auto-Budgeting' },
+  { label: 'Share the Journey' },
+];
 
 export default function IntroPage() {
   const navigate = useNavigate();
-  const containerRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
+  const heroRef = useRef(null);
+  const cardsRef = useRef(null);
+  const ctaRef = useRef(null);
+
+  const [activeStep, setActiveStep] = useState(0);
+
+  // Scroll progress through the hero DOJO section
+  const { scrollYProgress: heroProgress } = useScroll({
+    target: heroRef,
     offset: ['start start', 'end end'],
   });
 
+  // Update active step based on scroll
+  useMotionValueEvent(heroProgress, 'change', (latest) => {
+    const step = Math.min(
+      Math.floor(latest * DOJO_STEPS.length),
+      DOJO_STEPS.length - 1
+    );
+    setActiveStep(step);
+  });
+
+  // Scroll progress through sticky cards
+  const { scrollYProgress: cardsProgress } = useScroll({
+    target: cardsRef,
+    offset: ['start start', 'end end'],
+  });
+
+  // Page background: dark green → light green as 4th card approaches
+  const backgroundColor = useTransform(
+    cardsProgress,
+    [0.7, 1],
+    ['#152010', '#c6e3b6']
+  );
+
+  // Detect CTA section to switch the button
+  const ctaInView = useInView(ctaRef, { margin: '-40% 0px -40% 0px' });
+
   return (
-    <div className="min-h-screen bg-[#3A512F] text-white relative">
-      {/* Global violet gradient overlay — behind cards (z-0), covers whole page */}
-      <div className="fixed inset-0 pointer-events-none z-0"
+    <motion.div className="min-h-screen text-white relative" style={{ backgroundColor }}>
+      {/* Global gradient overlay */}
+      <div
+        className="fixed inset-0 pointer-events-none z-0"
         style={{
-          background: 'radial-gradient(ellipse 80% 60% at 50% 20%, rgba(139,92,246,0.13) 0%, rgba(109,40,217,0.07) 40%, transparent 70%), radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139,92,246,0.08) 0%, transparent 60%)',
+          background:
+            'radial-gradient(ellipse 80% 60% at 50% 20%, rgba(134,185,155,0.13) 0%, rgba(58,81,47,0.07) 40%, transparent 70%)',
         }}
       />
-      
-      
 
-      {/* Hero Section */}
-      <section className="relative z-0 min-h-screen flex flex-col items-center justify-center text-center overflow-hidden px-6">
-        <div className="absolute inset-0 pointer-events-none z-0">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_50%_20%,rgba(34,211,238,0.14)_0%,rgba(14,165,233,0.08)_38%,transparent_72%)]" />
-          <div style={{ width: '100%', height: '100%', position: 'relative', pointerEvents: 'auto' }}>
-            <Particles
-              particleColors={["#a669ed"]}
-              particleCount={400}
-              particleSpread={10}
-              speed={0.1}
-              particleBaseSize={100}
-              moveParticlesOnHover
-              alphaParticles={false}
-              disableRotation={false}
-              pixelRatio={1}
-            />
+      {/* ─── HERO: Scroll through DOJO 1–4 (one at a time) ─── */}
+      {/* Each step gets 150vh → total 600vh */}
+      <section ref={heroRef} className="relative" style={{ height: `${DOJO_STEPS.length * 150}vh` }}>
+        <div className="sticky top-0 h-screen overflow-hidden flex items-center justify-center">
+
+          {/* Particles backdrop */}
+          <div className="absolute inset-0 pointer-events-none z-0">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_50%_20%,rgba(134,185,155,0.14)_0%,rgba(58,81,47,0.08)_38%,transparent_72%)]" />
+            <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+              <Particles
+                particleColors={['#a3ff00']}
+                particleCount={300}
+                particleSpread={10}
+                speed={0.08}
+                particleBaseSize={80}
+                moveParticlesOnHover
+                alphaParticles={false}
+                disableRotation={false}
+                pixelRatio={1}
+              />
+            </div>
+          </div>
+
+          {/* AnimatePresence: only ONE step visible at a time */}
+          <div className="relative w-full h-full flex items-center justify-center z-10">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeStep}
+                initial={{ opacity: 0, scale: 0.88, y: 30 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 1.12, y: -30 }}
+                transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+                className="absolute inset-0 flex flex-col items-center justify-center text-center px-6"
+              >
+                <h1 className="text-6xl md:text-[9rem] font-black tracking-tighter text-white leading-none mb-6">
+                  {DOJO_STEPS[activeStep].label}
+                </h1>
+                <p className="text-white/50 text-lg md:text-2xl font-medium tracking-wide">
+                  {DOJO_STEPS[activeStep].sub}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Scroll hint */}
+          <motion.div
+            className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-20"
+            animate={{ opacity: activeStep === 0 ? 1 : 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <span className="text-white/40 text-xs tracking-widest uppercase">Scroll</span>
+            <div className="w-px h-10 bg-white/20 animate-pulse" />
+          </motion.div>
+
+          {/* Step indicator dots */}
+          <div className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
+            {DOJO_STEPS.map((_, i) => (
+              <motion.div
+                key={i}
+                animate={{ scale: i === activeStep ? 1.4 : 1, opacity: i === activeStep ? 1 : 0.3 }}
+                transition={{ duration: 0.3 }}
+                className="w-2 h-2 rounded-full bg-white"
+              />
+            ))}
           </div>
         </div>
-
-
-
-
-        <motion.h1 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="relative z-10 text-7xl md:text-9xl font-black mb-6 tracking-tighter leading-tight"
-        >
-          <ShinyText 
-            text="DOJO" 
-            speed={3} 
-            color="#b5b5b5" 
-            shineColor="#ffffff" 
-            spread={100}
-            direction="left"
-            className="pb-4 pr-2"
-          />
-        </motion.h1>
-
-
-        
       </section>
 
-      {/* STICKY CARDS SECTION */}
-      <section ref={containerRef} className="relative pt-16 md:pt-20">
-
+      {/* ─── STICKY STEP CARDS ─── */}
+      <section ref={cardsRef} className="relative pt-16 md:pt-20">
         <div className="relative" style={{ height: `${STEPS.length * 100}vh` }}>
           {STEPS.map((step, i) => (
-            <StickyStepCard 
-              key={i} 
-              step={step} 
-              index={i} 
-              total={STEPS.length} 
-              scrollYProgress={scrollYProgress} 
+            <StickyStepCard
+              key={i}
+              step={step}
+              index={i}
+              total={STEPS.length}
+              scrollYProgress={cardsProgress}
             />
           ))}
         </div>
       </section>
 
-      {/* Who It's For Section */}
-      <section className="relative py-24 px-6 overflow-hidden border-t border-white/5 bg-[#3A512F]">
-        {/* Subtle background glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-violet-500/10 blur-[120px] rounded-full pointer-events-none"></div>
-        
-        <div className="max-w-6xl mx-auto relative z-10">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
-          >
-            <p className="text-sm font-bold tracking-[0.3em] uppercase text-cyan-400/80 mb-4">Who It's For</p>
-            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-6">
-              Built for <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-400">One Student</span> in Particular
-            </h2>
-            <p className="text-gray-400 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
-              You've been coding for a year or two. You understand what a binary tree is. But when the interviewer asks you to implement a problem you've never seen, your mind goes blank. You've done 50 LeetCode problems and you're not sure you've actually learned anything. CodeDojo was built for you.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Card 1 */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              whileHover={{ y: -5, backgroundColor: "rgba(22, 27, 34, 0.8)" }}
-              className="bg-[#161b22]/50 backdrop-blur-sm border border-white/10 p-8 rounded-2xl relative overflow-hidden group transition-colors"
-            >
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-blue-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out"></div>
-              <div className="w-12 h-12 bg-cyan-500/10 rounded-xl flex items-center justify-center mb-6 border border-cyan-500/20 text-cyan-400 font-bold text-xl">01</div>
-              <h3 className="text-xl font-bold text-white mb-4">The Placement Aspirant</h3>
-              <p className="text-gray-400 leading-relaxed text-sm md:text-base">
-                B.Tech CS student preparing for SDE roles at top tech companies. You need placement-pattern problems with guidance that mimics what a senior mentor would give you.
-              </p>
-            </motion.div>
-
-            {/* Card 2 */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              whileHover={{ y: -5, backgroundColor: "rgba(22, 27, 34, 0.8)" }}
-              className="bg-[#161b22]/50 backdrop-blur-sm border border-white/10 p-8 rounded-2xl relative overflow-hidden group transition-colors"
-            >
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-violet-500 to-fuchsia-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out"></div>
-              <div className="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center mb-6 border border-violet-500/20 text-violet-400 font-bold text-xl">02</div>
-              <h3 className="text-xl font-bold text-white mb-4">The Conceptual Learner</h3>
-              <p className="text-gray-400 leading-relaxed text-sm md:text-base">
-                You want to understand DSA deeply — not just pass tests. You want to be asked why, not just told what.
-              </p>
-            </motion.div>
-
-            {/* Card 3 */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              whileHover={{ y: -5, backgroundColor: "rgba(22, 27, 34, 0.8)" }}
-              className="bg-[#161b22]/50 backdrop-blur-sm border border-white/10 p-8 rounded-2xl relative overflow-hidden group transition-colors"
-            >
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-teal-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out"></div>
-              <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-6 border border-emerald-500/20 text-emerald-400 font-bold text-xl">03</div>
-              <h3 className="text-xl font-bold text-white mb-4">The Productive Struggler</h3>
-              <p className="text-gray-400 leading-relaxed text-sm md:text-base">
-                You don't want the answer handed to you. You want just enough of a nudge to keep going. You know the struggle is the point — you just need a system designed around that insight.
-              </p>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* CPU Architecture Section */}
-      <section className="relative py-16 px-6 overflow-hidden border-t border-white/5 bg-[#3A512F]">
-        <div className="max-w-4xl mx-auto text-center mb-8">
-          <p className="text-[10px] font-bold tracking-[0.4em] uppercase text-violet-400/60 mb-2">Powered by Logic</p>
-          <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight">
-            Every submission flows through the <span className="text-violet-400">Gatekeeper</span>
+      {/* ─── CTA SECTION ─── */}
+      <section
+        ref={ctaRef}
+        className="relative bg-[#749962] px-8 pb-48 pt-28 flex flex-col items-center justify-center text-center"
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+        >
+          <h2 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight tracking-tight">
+            Your next trip is<br />one click away
           </h2>
-          <p className="text-gray-500 text-sm mt-3 max-w-xl mx-auto">Your code doesn't just run — it travels through an AI circuit that verifies your reasoning before it's accepted.</p>
-        </div>
-        <div className="max-w-3xl mx-auto w-full" style={{ height: '240px' }}>
-          <CpuArchitecture
-            width="100%"
-            height="100%"
-            text="DOJO"
-            animateText={true}
-            animateLines={true}
-            animateMarkers={true}
-            showCpuConnections={true}
-          />
-        </div>
+          <p className="text-white/70 text-xl md:text-2xl">
+            Start with a blank canvas — we'll handle the budget math.
+          </p>
+        </motion.div>
       </section>
 
-      <footer className="py-16 px-8 border-t border-white/5 text-center">
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <span className="bg-cyan-500 text-black text-xs font-bold px-2 py-0.5 rounded">✕</span>
-          <span className="text-white font-bold tracking-wider text-xl">CODE DOJO</span>
-        </div>
-        <p className="text-gray-500 text-sm">Built for the next generation of logical thinkers.</p>
-      </footer>
-      {/* FIXED CTA BUTTON — always visible */}
-      <motion.button 
+      {/* ─── FIXED FLOATING BUTTON ─── */}
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
         onClick={() => navigate('/auth')}
-        className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] group bg-white text-black px-8 py-4 rounded-2xl text-lg font-black transition-all hover:scale-105 active:scale-95 flex items-center gap-2 shadow-2xl shadow-white/10"
+        className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] cursor-pointer group bg-[#1a1a1a] border border-white/10 rounded-full p-2 pl-6 flex items-center shadow-2xl shadow-black/50 transition-all hover:scale-105 active:scale-95 overflow-hidden"
+        style={{ minWidth: 260 }}
       >
-        Enter the Dojo <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
-      </motion.button>
-    </div>
+        {/* Default: Traveloop + Enter */}
+        <motion.div
+          animate={{ opacity: ctaInView ? 0 : 1, y: ctaInView ? -8 : 0 }}
+          transition={{ duration: 0.35 }}
+          className="flex items-center gap-8 w-full"
+          style={{ position: ctaInView ? 'absolute' : 'relative', pointerEvents: ctaInView ? 'none' : 'auto' }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center shadow-lg border border-white/20">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="white" />
+              </svg>
+            </div>
+            <span className="text-white font-medium text-2xl tracking-tight">Traveloop</span>
+          </div>
+          <div className="bg-[#a3ff00] text-black px-8 py-3 rounded-full font-bold text-lg group-hover:bg-[#b5ff33] transition-colors">
+            Enter
+          </div>
+        </motion.div>
+
+        {/* CTA mode: Start Planning */}
+        <motion.div
+          animate={{ opacity: ctaInView ? 1 : 0, y: ctaInView ? 0 : 8 }}
+          transition={{ duration: 0.35 }}
+          className="flex items-center gap-4"
+          style={{ position: ctaInView ? 'relative' : 'absolute', pointerEvents: ctaInView ? 'auto' : 'none' }}
+        >
+          <span className="text-white font-medium text-2xl tracking-tight">Start planning</span>
+          <div className="bg-[#a3ff00] text-black px-6 py-3 rounded-full font-bold text-lg flex items-center gap-2 group-hover:bg-[#b5ff33] transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   );
 }
